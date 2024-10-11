@@ -1,5 +1,4 @@
 //! SBI call wrappers
-//! git test
 
 use core::arch::asm;
 
