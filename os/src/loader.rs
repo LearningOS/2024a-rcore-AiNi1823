@@ -21,6 +21,7 @@ struct UserStack {
     data: [u8; USER_STACK_SIZE],
 }
 
+//定义并初始化静态内核栈：类型为KernelStack，容量为MAX_APP_NUM(16)的数组
 static KERNEL_STACK: [KernelStack; MAX_APP_NUM] = [KernelStack {
     data: [0; KERNEL_STACK_SIZE],
 }; MAX_APP_NUM];
