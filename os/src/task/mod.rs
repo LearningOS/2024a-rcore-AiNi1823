@@ -82,7 +82,8 @@ impl TaskManager {
     fn run_first_task(&self) -> ! {
         let mut inner = self.inner.exclusive_access();
         let task0 = &mut inner.tasks[0];
-        task0.task_start_time = get_time_ms();
+        let current_time = get_time_ms() as usize;
+        task0.task_start_time = current_time;
         task0.task_status = TaskStatus::Running;
         let next_task_cx_ptr = &task0.task_cx as *const TaskContext;
         drop(inner);
@@ -125,11 +126,11 @@ impl TaskManager {
         if let Some(next) = self.find_next_task() {
             let mut inner = self.inner.exclusive_access();
             let current = inner.current_task;
-            let start_time = inner.tasks[next].task_start_time as usize;
             let current_time = get_time_ms() as usize;
-            inner.tasks[current].task_start_time = current_time - start_time;
-            inner.tasks[next].task_start_time = current_time;
             inner.tasks[next].task_status = TaskStatus::Running;
+            if inner.tasks[next].task_start_time == 0{
+                inner.tasks[next].task_start_time = current_time;
+            }
             inner.current_task = next;
             let current_task_cx_ptr = &mut inner.tasks[current].task_cx as *mut TaskContext;
             let next_task_cx_ptr = &inner.tasks[next].task_cx as *const TaskContext;
@@ -146,13 +147,11 @@ impl TaskManager {
 
     fn get_current_task_info(&self) -> TaskInfo {
         let mut inner = self.inner.exclusive_access();
-        let current_task = inner.current_task;
+        let current = inner.current_task;
         let current_time = get_time_ms() as usize;
-        let run_time = current_time - inner.tasks[current_task].task_start_time;
-
-        inner.tasks[current_task].task_info.time = run_time;
-        inner.tasks[current_task].task_status = inner.tasks[current_task].task_status;
-        inner.tasks[current_task].task_info
+        inner.tasks[current].task_info.time = current_time - inner.tasks[current].task_start_time;
+        inner.tasks[current].task_info.status =  inner.tasks[current].task_status;
+        inner.tasks[current].task_info
 
     }
 
